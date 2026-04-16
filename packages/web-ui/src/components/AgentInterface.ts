@@ -8,7 +8,8 @@ import "./MessageList.js";
 import "./Messages.js"; // Import for side effects to register the custom elements
 import { getAppStorage } from "../storage/app-storage.js";
 import "./StreamingMessageContainer.js";
-import type { Agent, AgentEvent } from "@mariozechner/pi-agent-core";
+import type { Agent, AgentEvent, ThinkingLevel } from "@mariozechner/pi-agent-core";
+import type { ToolPartialResult } from "../tools/types.js";
 import type { Attachment } from "../utils/attachment-utils.js";
 import { formatUsage } from "../utils/format.js";
 import { i18n } from "../utils/i18n.js";
@@ -45,6 +46,7 @@ export class AgentInterface extends LitElement {
 	private _scrollContainer?: HTMLElement;
 	private _resizeObserver?: ResizeObserver;
 	private _unsubscribeSession?: () => void;
+	private _partialToolResultsById = new Map<string, ToolPartialResult<any>>();
 
 	public setInput(text: string, attachments?: Attachment[]) {
 		const update = () => {
@@ -132,6 +134,7 @@ export class AgentInterface extends LitElement {
 			this._unsubscribeSession();
 			this._unsubscribeSession = undefined;
 		}
+		this._partialToolResultsById.clear();
 		if (!this.session) return;
 
 		// Set default streamFn with proxy support if not already set
@@ -156,9 +159,17 @@ export class AgentInterface extends LitElement {
 				case "turn_start":
 				case "turn_end":
 				case "agent_start":
+				case "tool_execution_end":
+					this.requestUpdate();
+					break;
+				case "tool_execution_update":
+					this._partialToolResultsById.set(ev.toolCallId, ev.partialResult as ToolPartialResult<any>);
 					this.requestUpdate();
 					break;
 				case "message_end":
+					if (ev.message.role === "toolResult" && !ev.message.isError) {
+						this._partialToolResultsById.delete(ev.message.toolCallId);
+					}
 					// Clear streaming container when a message completes
 					// to prevent duplicate rendering (stable list now has this message)
 					if (this._streamingContainer) {
@@ -167,12 +178,19 @@ export class AgentInterface extends LitElement {
 					this.requestUpdate();
 					break;
 				case "agent_end":
+					this._partialToolResultsById.clear();
 					// Clear streaming container when agent finishes
 					if (this._streamingContainer) {
 						this._streamingContainer.isStreaming = false;
 						this._streamingContainer.setMessage(null, true);
 					}
 					this.requestUpdate();
+					window.setTimeout(() => {
+						if (!this.session) return;
+						if (!this.session.state.isStreaming) {
+							this.requestUpdate();
+						}
+					}, 0);
 					break;
 				case "message_update":
 					if (this._streamingContainer) {
@@ -279,6 +297,7 @@ export class AgentInterface extends LitElement {
 					.messages=${this.session.state.messages}
 					.tools=${state.tools}
 					.pendingToolCalls=${this.session ? this.session.state.pendingToolCalls : new Set<string>()}
+					.partialToolResultsById=${this._partialToolResultsById}
 					.isStreaming=${state.isStreaming}
 					.onCostClick=${this.onCostClick}
 				></message-list>
@@ -290,6 +309,7 @@ export class AgentInterface extends LitElement {
 					.isStreaming=${state.isStreaming}
 					.pendingToolCalls=${state.pendingToolCalls}
 					.toolResultsById=${toolResultsById}
+					.partialToolResultsById=${this._partialToolResultsById}
 					.onCostClick=${this.onCostClick}
 				></streaming-message-container>
 			</div>
@@ -383,7 +403,7 @@ export class AgentInterface extends LitElement {
 							}}
 							.onThinkingChange=${
 								this.enableThinkingSelector
-									? (level: "off" | "minimal" | "low" | "medium" | "high") => {
+									? (level: ThinkingLevel) => {
 											session.state.thinkingLevel = level;
 										}
 									: undefined

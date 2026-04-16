@@ -230,6 +230,22 @@ export class Agent {
 		return this._state;
 	}
 
+	setSystemPrompt(systemPrompt: string): void {
+		this._state.systemPrompt = systemPrompt;
+	}
+
+	setModel(model: Model<any>): void {
+		this._state.model = model;
+	}
+
+	appendMessage(message: AgentMessage): void {
+		this._state.messages = [...this._state.messages, message];
+	}
+
+	replaceMessages(messages: AgentMessage[]): void {
+		this._state.messages = messages.slice();
+	}
+
 	/** Controls how queued steering messages are drained. */
 	set steeringMode(mode: QueueMode) {
 		this.steeringQueue.mode = mode;

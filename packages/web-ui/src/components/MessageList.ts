@@ -6,12 +6,14 @@ import type {
 import { html, LitElement, type TemplateResult } from "lit";
 import { property } from "lit/decorators.js";
 import { repeat } from "lit/directives/repeat.js";
+import type { ToolPartialResult } from "../tools/types.js";
 import { renderMessage } from "./message-renderer-registry.js";
 
 export class MessageList extends LitElement {
 	@property({ type: Array }) messages: AgentMessage[] = [];
 	@property({ type: Array }) tools: AgentTool[] = [];
 	@property({ type: Object }) pendingToolCalls?: ReadonlySet<string>;
+	@property({ type: Object }) partialToolResultsById?: Map<string, ToolPartialResult>;
 	@property({ type: Boolean }) isStreaming: boolean = false;
 	@property({ attribute: false }) onCostClick?: () => void;
 
@@ -66,6 +68,7 @@ export class MessageList extends LitElement {
 						.isStreaming=${false}
 						.pendingToolCalls=${this.pendingToolCalls}
 						.toolResultsById=${resultByCallId}
+						.partialToolResultsById=${this.partialToolResultsById}
 						.hideToolCalls=${false}
 						.hidePendingToolCalls=${this.isStreaming}
 						.onCostClick=${this.onCostClick}

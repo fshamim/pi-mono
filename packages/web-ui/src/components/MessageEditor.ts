@@ -1,7 +1,7 @@
 import { icon } from "@mariozechner/mini-lit";
 import { Button } from "@mariozechner/mini-lit/dist/Button.js";
 import { Select, type SelectOption } from "@mariozechner/mini-lit/dist/Select.js";
-import type { Model } from "@mariozechner/pi-ai";
+import { type Model, supportsXhigh } from "@mariozechner/pi-ai";
 import { html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { createRef, ref } from "lit/directives/ref.js";
@@ -37,7 +37,7 @@ export class MessageEditor extends LitElement {
 	@property() onSend?: (input: string, attachments: Attachment[]) => void;
 	@property() onAbort?: () => void;
 	@property() onModelSelect?: () => void;
-	@property() onThinkingChange?: (level: "off" | "minimal" | "low" | "medium" | "high") => void;
+	@property() onThinkingChange?: (level: ThinkingLevel) => void;
 	@property() onFilesChange?: (files: Attachment[]) => void;
 	@property() attachments: Attachment[] = [];
 	@property() maxFiles = 10;
@@ -235,10 +235,32 @@ export class MessageEditor extends LitElement {
 		}
 	}
 
+	override updated(changedProperties: Map<string, unknown>) {
+		super.updated(changedProperties);
+		if (!this.currentModel || this.currentModel.reasoning !== true) return;
+		if (this.thinkingLevel !== "xhigh") return;
+		if (supportsXhigh(this.currentModel)) return;
+		this.thinkingLevel = "high";
+		this.onThinkingChange?.("high");
+	}
+
 	override render() {
 		// Check if current model supports thinking/reasoning
 		const model = this.currentModel;
-		const supportsThinking = model?.reasoning === true; // Models with reasoning:true support thinking
+		const supportsThinking = model?.reasoning === true;
+		const supportsXhighThinking = supportsThinking && model ? supportsXhigh(model) : false;
+		const thinkingOptions: SelectOption[] = [
+			{ value: "off", label: i18n("Off"), icon: icon(Brain, "sm") },
+			{ value: "minimal", label: i18n("Minimal"), icon: icon(Brain, "sm") },
+			{ value: "low", label: i18n("Low"), icon: icon(Brain, "sm") },
+			{ value: "medium", label: i18n("Medium"), icon: icon(Brain, "sm") },
+			{ value: "high", label: i18n("High"), icon: icon(Brain, "sm") },
+		];
+		if (supportsXhighThinking) {
+			thinkingOptions.push({ value: "xhigh", label: i18n("XHigh"), icon: icon(Brain, "sm") });
+		}
+		const selectedThinkingLevel =
+			this.thinkingLevel === "xhigh" && !supportsXhighThinking ? "high" : this.thinkingLevel;
 
 		return html`
 			<div
@@ -326,21 +348,15 @@ export class MessageEditor extends LitElement {
 							supportsThinking && this.showThinkingSelector
 								? html`
 									${Select({
-										value: this.thinkingLevel,
+										value: selectedThinkingLevel,
 										placeholder: i18n("Off"),
-										options: [
-											{ value: "off", label: i18n("Off"), icon: icon(Brain, "sm") },
-											{ value: "minimal", label: i18n("Minimal"), icon: icon(Brain, "sm") },
-											{ value: "low", label: i18n("Low"), icon: icon(Brain, "sm") },
-											{ value: "medium", label: i18n("Medium"), icon: icon(Brain, "sm") },
-											{ value: "high", label: i18n("High"), icon: icon(Brain, "sm") },
-										] as SelectOption[],
+										options: thinkingOptions,
 										onChange: (value: string) => {
-											const level = value as "off" | "minimal" | "low" | "medium" | "high";
+											const level = value as ThinkingLevel;
 											this.thinkingLevel = level;
 											this.onThinkingChange?.(level);
 										},
-										width: "80px",
+										width: "96px",
 										size: "sm",
 										variant: "ghost",
 										fitContent: true,

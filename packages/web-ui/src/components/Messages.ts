@@ -9,6 +9,7 @@ import type {
 import { html, LitElement, type TemplateResult } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { renderTool } from "../tools/index.js";
+import type { ToolPartialResult } from "../tools/types.js";
 import type { Attachment } from "../utils/attachment-utils.js";
 import { formatUsage } from "../utils/format.js";
 import { i18n } from "../utils/i18n.js";
@@ -88,6 +89,7 @@ export class AssistantMessage extends LitElement {
 	@property({ type: Object }) pendingToolCalls?: ReadonlySet<string>;
 	@property({ type: Boolean }) hideToolCalls = false;
 	@property({ type: Object }) toolResultsById?: Map<string, ToolResultMessageType>;
+	@property({ type: Object }) partialToolResultsById?: Map<string, ToolPartialResult>;
 	@property({ type: Boolean }) isStreaming: boolean = false;
 	@property({ type: Boolean }) hidePendingToolCalls = false;
 	@property({ attribute: false }) onCostClick?: () => void;
@@ -117,6 +119,7 @@ export class AssistantMessage extends LitElement {
 					const tool = this.tools?.find((t) => t.name === chunk.name);
 					const pending = this.pendingToolCalls?.has(chunk.id) ?? false;
 					const result = this.toolResultsById?.get(chunk.id);
+					const partialResult = this.partialToolResultsById?.get(chunk.id);
 					// Skip rendering pending tool calls when hidePendingToolCalls is true
 					// (used to prevent duplication when StreamingMessageContainer is showing them)
 					if (this.hidePendingToolCalls && pending && !result) {
@@ -129,6 +132,7 @@ export class AssistantMessage extends LitElement {
 							.tool=${tool}
 							.toolCall=${chunk}
 							.result=${result}
+							.partialResult=${partialResult}
 							.pending=${pending}
 							.aborted=${aborted}
 							.isStreaming=${this.isStreaming}
@@ -228,6 +232,7 @@ export class ToolMessage extends LitElement {
 	@property({ type: Object }) toolCall!: ToolCall;
 	@property({ type: Object }) tool?: AgentTool<any>;
 	@property({ type: Object }) result?: ToolResultMessageType;
+	@property({ type: Object }) partialResult?: ToolPartialResult;
 	@property({ type: Boolean }) pending: boolean = false;
 	@property({ type: Boolean }) aborted: boolean = false;
 	@property({ type: Boolean }) isStreaming: boolean = false;
@@ -260,6 +265,7 @@ export class ToolMessage extends LitElement {
 			this.toolCall.arguments,
 			result,
 			!this.aborted && (this.isStreaming || this.pending),
+			{ partialResult: this.partialResult },
 		);
 
 		// Handle custom rendering (no card wrapper)

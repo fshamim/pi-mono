@@ -2,12 +2,14 @@ import type { AgentMessage, AgentTool } from "@mariozechner/pi-agent-core";
 import type { ToolResultMessage } from "@mariozechner/pi-ai";
 import { html, LitElement } from "lit";
 import { property, state } from "lit/decorators.js";
+import type { ToolPartialResult } from "../tools/types.js";
 
 export class StreamingMessageContainer extends LitElement {
 	@property({ type: Array }) tools: AgentTool[] = [];
 	@property({ type: Boolean }) isStreaming = false;
 	@property({ type: Object }) pendingToolCalls?: ReadonlySet<string>;
 	@property({ type: Object }) toolResultsById?: Map<string, ToolResultMessage>;
+	@property({ type: Object }) partialToolResultsById?: Map<string, ToolPartialResult>;
 	@property({ attribute: false }) onCostClick?: () => void;
 
 	@state() private _message: AgentMessage | null = null;
@@ -87,6 +89,7 @@ export class StreamingMessageContainer extends LitElement {
 						.isStreaming=${this.isStreaming}
 						.pendingToolCalls=${this.pendingToolCalls}
 						.toolResultsById=${this.toolResultsById}
+						.partialToolResultsById=${this.partialToolResultsById}
 						.hideToolCalls=${false}
 						.onCostClick=${this.onCostClick}
 					></assistant-message>

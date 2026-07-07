@@ -1,15 +1,15 @@
+import type { Model } from "@earendil-works/pi-ai";
 import { i18n } from "@mariozechner/mini-lit";
 import { Button } from "@mariozechner/mini-lit/dist/Button.js";
 import { DialogBase } from "@mariozechner/mini-lit/dist/DialogBase.js";
 import { Input } from "@mariozechner/mini-lit/dist/Input.js";
 import { Label } from "@mariozechner/mini-lit/dist/Label.js";
 import { Select } from "@mariozechner/mini-lit/dist/Select.js";
-import type { Model } from "@earendil-works/pi-ai";
 import { html, type TemplateResult } from "lit";
 import { state } from "lit/decorators.js";
-import { getAppStorage } from "../storage/app-storage.js";
-import type { CustomProvider, CustomProviderType } from "../storage/stores/custom-providers-store.js";
-import { discoverModels } from "../utils/model-discovery.js";
+import { getAppStorage } from "../storage/app-storage.ts";
+import type { CustomProvider, CustomProviderType } from "../storage/stores/custom-providers-store.ts";
+import { discoverModels } from "../utils/model-discovery.ts";
 
 export class CustomProviderDialog extends DialogBase {
 	private provider?: CustomProvider;

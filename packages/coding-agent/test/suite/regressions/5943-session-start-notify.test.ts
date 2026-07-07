@@ -206,7 +206,7 @@ type MessageEvent = Extract<AgentSessionEvent, { type: "message_start" | "messag
 
 function getMessageText(event: MessageEvent): string {
 	const message = event.message;
-	if (!("content" in message)) {
+	if (!("content" in message) || message.content === undefined) {
 		return "";
 	}
 	const content = message.content;

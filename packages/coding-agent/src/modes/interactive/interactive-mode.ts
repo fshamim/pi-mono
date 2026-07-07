@@ -12,7 +12,6 @@ import {
 	type AssistantMessage,
 	getProviders,
 	type ImageContent,
-	type Message,
 	type Model,
 	type OAuthProviderId,
 	type OAuthSelectPrompt,
@@ -3047,13 +3046,15 @@ export class InteractiveMode {
 	}
 
 	/** Extract text content from a user message */
-	private getUserMessageText(message: Message): string {
-		if (message.role !== "user") return "";
+	private getUserMessageText(message: {
+		role: "user" | "user-with-attachments";
+		content: string | Array<{ type: string; text?: string }>;
+	}): string {
 		const textBlocks =
 			typeof message.content === "string"
 				? [{ type: "text", text: message.content }]
 				: message.content.filter((c: { type: string }) => c.type === "text");
-		return textBlocks.map((c) => (c as { text: string }).text).join("");
+		return textBlocks.map((c) => c.text ?? "").join("");
 	}
 
 	/**
@@ -3143,7 +3144,8 @@ export class InteractiveMode {
 				this.chatContainer.addChild(component);
 				break;
 			}
-			case "user": {
+			case "user":
+			case "user-with-attachments": {
 				const textContent = this.getUserMessageText(message);
 				if (textContent) {
 					if (this.chatContainer.children.length > 0) {
@@ -3193,7 +3195,8 @@ export class InteractiveMode {
 				this.chatContainer.addChild(assistantComponent);
 				break;
 			}
-			case "toolResult": {
+			case "toolResult":
+			case "artifact": {
 				// Tool results are rendered inline with tool calls, handled separately
 				break;
 			}

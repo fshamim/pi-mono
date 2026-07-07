@@ -15,7 +15,7 @@ import { SessionManager } from "../../../src/core/session-manager.ts";
 import type { ExtensionAPI, ExtensionCommandContext, ExtensionFactory } from "../../../src/index.ts";
 
 function getText(message: AgentSession["messages"][number]): string {
-	if (!("content" in message)) {
+	if (!("content" in message) || message.content === undefined) {
 		return "";
 	}
 	return typeof message.content === "string"

@@ -2,7 +2,7 @@ import type { AgentMessage, AgentTool } from "@earendil-works/pi-agent-core";
 import type { ToolResultMessage } from "@earendil-works/pi-ai";
 import { html, LitElement } from "lit";
 import { property, state } from "lit/decorators.js";
-import type { ToolPartialResult } from "../tools/types.js";
+import type { ToolPartialResult } from "../tools/types.ts";
 
 export class StreamingMessageContainer extends LitElement {
 	@property({ type: Array }) tools: AgentTool[] = [];

@@ -1,13 +1,13 @@
+import type { Context } from "@earendil-works/pi-ai";
+import { complete, getModel } from "@earendil-works/pi-ai/compat";
 import { i18n } from "@mariozechner/mini-lit";
 import { Badge } from "@mariozechner/mini-lit/dist/Badge.js";
 import { Button } from "@mariozechner/mini-lit/dist/Button.js";
-import type { Context } from "@earendil-works/pi-ai";
-import { complete, getModel } from "@earendil-works/pi-ai/compat";
 import { html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import { getAppStorage } from "../storage/app-storage.js";
-import { applyProxyIfNeeded } from "../utils/proxy-utils.js";
-import { Input } from "./Input.js";
+import { getAppStorage } from "../storage/app-storage.ts";
+import { applyProxyIfNeeded } from "../utils/proxy-utils.ts";
+import { Input } from "./Input.ts";
 
 // Test models for each provider
 const TEST_MODELS: Record<string, string> = {

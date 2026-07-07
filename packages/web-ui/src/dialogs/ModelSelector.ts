@@ -1,20 +1,20 @@
+import { type Model, modelsAreEqual } from "@earendil-works/pi-ai";
+import { getModels, getProviders } from "@earendil-works/pi-ai/compat";
 import { icon } from "@mariozechner/mini-lit";
 import { Badge } from "@mariozechner/mini-lit/dist/Badge.js";
 import { Button } from "@mariozechner/mini-lit/dist/Button.js";
 import { DialogHeader } from "@mariozechner/mini-lit/dist/Dialog.js";
 import { DialogBase } from "@mariozechner/mini-lit/dist/DialogBase.js";
-import { type Model, modelsAreEqual } from "@earendil-works/pi-ai";
-import { getModels, getProviders } from "@earendil-works/pi-ai/compat";
 import { html, type PropertyValues, type TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { createRef, ref } from "lit/directives/ref.js";
 import { Brain, Image as ImageIcon } from "lucide";
-import { Input } from "../components/Input.js";
-import { getAppStorage } from "../storage/app-storage.js";
-import type { AutoDiscoveryProviderType } from "../storage/stores/custom-providers-store.js";
-import { formatModelCost } from "../utils/format.js";
-import { i18n } from "../utils/i18n.js";
-import { discoverModels } from "../utils/model-discovery.js";
+import { Input } from "../components/Input.ts";
+import { getAppStorage } from "../storage/app-storage.ts";
+import type { AutoDiscoveryProviderType } from "../storage/stores/custom-providers-store.ts";
+import { formatModelCost } from "../utils/format.ts";
+import { i18n } from "../utils/i18n.ts";
+import { discoverModels } from "../utils/model-discovery.ts";
 
 /**
  * Score a query against a text using subsequence matching.

@@ -561,6 +561,7 @@ function getTogetherThinkingLevelMap(
 
 function supportsOpenAiXhigh(modelId: string): boolean {
 	return (
+		modelId.includes("gpt-5.1-codex-max") ||
 		modelId.includes("gpt-5.2") ||
 		modelId.includes("gpt-5.3") ||
 		modelId.includes("gpt-5.4") ||

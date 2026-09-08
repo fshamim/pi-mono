@@ -289,7 +289,7 @@ export const stream: StreamFunction<"openai-codex-responses", OpenAICodexRespons
 				recordWebSocketSseFallback(cacheSessionId);
 			}
 
-			if (transport !== "sse" && !websocketDisabledForSession) {
+			if (transport !== "sse" && !websocketDisabledForSession && isHeaderCapableWebSocketRuntime()) {
 				let websocketStarted = false;
 				let retriedWebSocketConnectionLimit = false;
 				let retriedMissingWebSocketContinuation = false;
@@ -954,6 +954,16 @@ type WebSocketConstructor = new (
 	url: string,
 	protocols?: string | string[] | { headers?: Record<string, string> },
 ) => WebSocketLike;
+
+// The Codex WebSocket handshake is authenticated purely through custom request
+// headers, which only the Node (undici init object) and Bun WebSocket
+// constructors can send. A browser's native WebSocket treats the second
+// constructor argument as a subprotocol list, so `new WebSocket(url, { headers })`
+// throws SyntaxError before any connection is attempted. In such runtimes skip
+// the doomed WebSocket attempt entirely and use the SSE path directly.
+function isHeaderCapableWebSocketRuntime(): boolean {
+	return typeof process !== "undefined" && Boolean(process.versions?.node || process.versions?.bun);
+}
 
 let _cachedWebsocket: WebSocketConstructor | null = null;
 async function getWebSocketConstructor(env?: ProviderEnv): Promise<WebSocketConstructor | null> {

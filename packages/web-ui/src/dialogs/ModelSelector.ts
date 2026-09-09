@@ -47,12 +47,16 @@ function subsequenceScore(query: string, text: string): number {
 	return query.length / (query.length + gaps);
 }
 
+/** Providers that lead the chip row; the rest keep the model list's own order. */
+const PROVIDER_CHIP_PRIORITY = ["opencode-go", "opencode"];
+
 @customElement("agent-model-selector")
 export class ModelSelector extends DialogBase {
 	@state() currentModel: Model<any> | null = null;
 	@state() searchQuery = "";
 	@state() filterThinking = false;
 	@state() filterVision = false;
+	@state() selectedProvider: string | null = null;
 	@state() customProvidersLoading = false;
 	@state() selectedIndex = 0;
 	@state() private navigationMode: "mouse" | "keyboard" = "mouse";
@@ -131,6 +135,8 @@ export class ModelSelector extends DialogBase {
 				this.selectedIndex = Math.max(this.selectedIndex - 1, 0);
 				this.scrollToSelected();
 			} else if (e.key === "Enter") {
+				// A focused provider chip handles its own Enter
+				if ((e.target as HTMLElement | null)?.closest("[data-provider-chip]")) return;
 				e.preventDefault();
 				if (filteredModels[this.selectedIndex]) {
 					this.handleSelect(filteredModels[this.selectedIndex].model);
@@ -199,7 +205,8 @@ export class ModelSelector extends DialogBase {
 		}
 	}
 
-	private getFilteredModels(): Array<{ provider: string; id: string; model: any }> {
+	/** Every model the dialog may show, before search/capability/provider filtering. */
+	private getAllModels(): Array<{ provider: string; id: string; model: any }> {
 		// Collect all models from known providers
 		const allModels: Array<{ provider: string; id: string; model: any }> = [];
 		const knownProviders = getProviders();
@@ -219,17 +226,41 @@ export class ModelSelector extends DialogBase {
 		// Filter by allowed providers if set
 		if (this.allowedProviders) {
 			const allowed = this.allowedProviders;
-			allModels.splice(0, allModels.length, ...allModels.filter(({ provider }) => allowed.has(provider)));
+			return allModels.filter(({ provider }) => allowed.has(provider));
 		}
 
-		// Filter models based on search and capability filters
-		let filteredModels = allModels;
+		return allModels;
+	}
+
+	/** Providers with at least one model, priority ones first, then existing order. */
+	private getProviderOptions(): string[] {
+		const providers: string[] = [];
+		for (const { provider } of this.getAllModels()) {
+			if (!providers.includes(provider)) providers.push(provider);
+		}
+		const rank = (provider: string) => {
+			const index = PROVIDER_CHIP_PRIORITY.indexOf(provider);
+			return index === -1 ? PROVIDER_CHIP_PRIORITY.length : index;
+		};
+		// Stable sort keeps the existing order within each rank
+		return providers.sort((a, b) => rank(a) - rank(b));
+	}
+
+	private getFilteredModels(): Array<{ provider: string; id: string; model: any }> {
+		// Filter models based on provider, search and capability filters
+		let filteredModels = this.getAllModels();
+
+		// Apply provider filter (null = all providers)
+		if (this.selectedProvider) {
+			const selected = this.selectedProvider;
+			filteredModels = filteredModels.filter(({ provider }) => provider === selected);
+		}
 
 		// Apply search filter (subsequence match: characters must appear in order)
 		if (this.searchQuery) {
 			const query = this.searchQuery.toLowerCase().replace(/\s+/g, "");
 			if (query) {
-				const scored: Array<{ item: (typeof allModels)[0]; score: number }> = [];
+				const scored: Array<{ item: (typeof filteredModels)[0]; score: number }> = [];
 				for (const entry of filteredModels) {
 					const searchText = `${entry.provider} ${entry.id} ${entry.model.name}`.toLowerCase();
 					const score = subsequenceScore(query, searchText);
@@ -266,6 +297,36 @@ export class ModelSelector extends DialogBase {
 		return filteredModels;
 	}
 
+	private resetListPosition() {
+		this.selectedIndex = 0;
+		if (this.scrollContainerRef.value) {
+			this.scrollContainerRef.value.scrollTop = 0;
+		}
+	}
+
+	private renderProviderChip(provider: string | null, label: string): TemplateResult {
+		const isActive = this.selectedProvider === provider;
+		// Same look as the mini-lit sm Button (default vs secondary), plus aria-pressed
+		return html`
+			<button
+				type="button"
+				data-provider-chip
+				aria-pressed=${isActive}
+				class="inline-flex items-center justify-center whitespace-nowrap shrink-0 h-8 rounded-full px-3 text-xs font-medium shadow-xs transition-all cursor-pointer outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px] ${
+					isActive
+						? "bg-primary text-primary-foreground hover:bg-primary/90"
+						: "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+				}"
+				@click=${() => {
+					this.selectedProvider = provider;
+					this.resetListPosition();
+				}}
+			>
+				${label}
+			</button>
+		`;
+	}
+
 	private scrollToSelected() {
 		requestAnimationFrame(() => {
 			const scrollContainer = this.scrollContainerRef.value;
@@ -298,6 +359,10 @@ export class ModelSelector extends DialogBase {
 						}
 					},
 				})}
+				<div class="flex gap-2 overflow-x-auto" role="group" aria-label="Filter by provider">
+					${this.renderProviderChip(null, "All providers")}
+					${this.getProviderOptions().map((provider) => this.renderProviderChip(provider, provider))}
+				</div>
 				<div class="flex gap-2">
 					${Button({
 						variant: this.filterThinking ? "default" : "secondary",

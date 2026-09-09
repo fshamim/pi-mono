@@ -359,8 +359,8 @@ export class ModelSelector extends DialogBase {
 						}
 					},
 				})}
-				<div class="flex gap-2 overflow-x-auto" role="group" aria-label="Filter by provider">
-					${this.renderProviderChip(null, "All providers")}
+				<div class="flex gap-2 overflow-x-auto" role="group" aria-label=${i18n("Filter by provider")}>
+					${this.renderProviderChip(null, i18n("All providers"))}
 					${this.getProviderOptions().map((provider) => this.renderProviderChip(provider, provider))}
 				</div>
 				<div class="flex gap-2">

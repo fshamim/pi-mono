@@ -10,6 +10,8 @@ declare module "@mariozechner/mini-lit" {
 		"Search models...": string;
 		Format: string;
 		Thinking: string;
+		"All providers": string;
+		"Filter by provider": string;
 		Vision: string;
 		You: string;
 		Assistant: string;
@@ -219,6 +221,8 @@ export const translations = {
 		"Search models...": "Search models...",
 		Format: "Format",
 		Thinking: "Thinking",
+		"All providers": "All providers",
+		"Filter by provider": "Filter by provider",
 		Vision: "Vision",
 		You: "You",
 		Assistant: "Assistant",
@@ -439,6 +443,8 @@ export const translations = {
 		"Search models...": "Modelle suchen...",
 		Format: "Formatieren",
 		Thinking: "Thinking",
+		"All providers": "Alle Anbieter",
+		"Filter by provider": "Nach Anbieter filtern",
 		Vision: "Vision",
 		You: "Sie",
 		Assistant: "Assistent",

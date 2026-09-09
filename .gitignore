@@ -43,3 +43,8 @@ plans/
 .pi/hf-sessions-backup/
 collect.sh
 packages/agent/docs/extensions/pi-server-artifact/index.md
+
+# GhostClaw overlay (D3, 2026-09-09): the generated model catalog is committed so
+# `npm run build:offline` works without network and builds are reproducible.
+!packages/ai/src/providers/data/
+!packages/ai/src/providers/data/**

@@ -153,9 +153,9 @@ export class AgentInterface extends LitElement {
 		this._partialToolResultsById.clear();
 		if (!this.session) return;
 
-		// Set default streamFn with proxy support if not already set
-		if (this.session.streamFn === streamSimple) {
-			this.session.streamFn = createStreamFn(async () => {
+		// Install the proxy-aware stream function if the host left pi-agent-core's default in place.
+		if (this.session.streamFunction === streamSimple) {
+			this.session.streamFunction = createStreamFn(async () => {
 				const enabled = await getAppStorage().settings.get<boolean>("proxy.enabled");
 				return enabled ? (await getAppStorage().settings.get<string>("proxy.url")) || undefined : undefined;
 			});

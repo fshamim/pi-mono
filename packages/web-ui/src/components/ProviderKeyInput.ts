@@ -159,6 +159,12 @@ export class ProviderKeyInput extends LitElement {
 							this.inputChanged = true;
 							this.requestUpdate();
 						},
+						// A stored key is shown as a placeholder over an EMPTY field, so Backspace or Delete on
+						// it fires no input event; count that keystroke as "edited to empty" so Remove lights.
+						onKeyDown: (e: KeyboardEvent) => {
+							if ((e.key === "Backspace" || e.key === "Delete") && this.hasKey && !this.keyInput)
+								this.inputChanged = true;
+						},
 						className: "flex-1",
 					})}
 					${Button({

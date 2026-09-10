@@ -1,5 +1,6 @@
 import type { Context } from "@earendil-works/pi-ai";
 import { complete, getModel } from "@earendil-works/pi-ai/compat";
+import { builtinProviders } from "@earendil-works/pi-ai/providers/all";
 import { i18n } from "@mariozechner/mini-lit";
 import { Badge } from "@mariozechner/mini-lit/dist/Badge.js";
 import { Button } from "@mariozechner/mini-lit/dist/Button.js";
@@ -8,6 +9,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { getAppStorage } from "../storage/app-storage.ts";
 import { applyProxyIfNeeded } from "../utils/proxy-utils.ts";
 import { Input } from "./Input.ts";
+import { providerKeyAction } from "./provider-key-state.ts";
 
 // Test models for each provider
 const TEST_MODELS: Record<string, string> = {
@@ -21,6 +23,13 @@ const TEST_MODELS: Record<string, string> = {
 	xai: "grok-4-fast-non-reasoning",
 	zai: "glm-4.5-air",
 };
+
+let providerNames: Map<string, string> | undefined;
+/** pi-ai's display name for a provider id ("OpenCode Go"), the id itself when unknown. Built on first use. */
+function providerName(id: string): string {
+	providerNames ??= new Map(builtinProviders().map((p) => [p.id, p.name]));
+	return providerNames.get(id) ?? id;
+}
 
 @customElement("provider-key-input")
 export class ProviderKeyInput extends LitElement {
@@ -81,6 +90,14 @@ export class ProviderKeyInput extends LitElement {
 		}
 	}
 
+	private showFailed() {
+		this.failed = true;
+		setTimeout(() => {
+			this.failed = false;
+			this.requestUpdate();
+		}, 5000);
+	}
+
 	private async saveKey() {
 		if (!this.keyInput) return;
 
@@ -99,26 +116,30 @@ export class ProviderKeyInput extends LitElement {
 				this.requestUpdate();
 			} catch (error) {
 				console.error("Failed to save API key:", error);
-				this.failed = true;
-				setTimeout(() => {
-					this.failed = false;
-					this.requestUpdate();
-				}, 5000);
+				this.showFailed();
 			}
 		} else {
-			this.failed = true;
-			setTimeout(() => {
-				this.failed = false;
-				this.requestUpdate();
-			}, 5000);
+			this.showFailed();
+		}
+	}
+
+	private async removeKey() {
+		try {
+			await getAppStorage().providerKeys.delete(this.provider);
+			this.hasKey = false;
+			this.inputChanged = false;
+		} catch (error) {
+			console.error("Failed to remove API key:", error);
+			this.showFailed();
 		}
 	}
 
 	render() {
+		const action = providerKeyAction(this.hasKey, this.keyInput, this.inputChanged);
 		return html`
 			<div class="space-y-3">
 				<div class="flex items-center gap-2">
-					<span class="text-sm font-medium capitalize text-foreground">${this.provider}</span>
+					<span class="text-sm font-medium capitalize text-foreground">${providerName(this.provider)}</span>
 					${
 						this.testing
 							? Badge({ children: i18n("Testing..."), variant: "secondary" })
@@ -141,11 +162,11 @@ export class ProviderKeyInput extends LitElement {
 						className: "flex-1",
 					})}
 					${Button({
-						onClick: () => this.saveKey(),
+						onClick: () => (action === "remove" ? this.removeKey() : this.saveKey()),
 						variant: "default",
 						size: "sm",
-						disabled: !this.keyInput || this.testing || (this.hasKey && !this.inputChanged),
-						children: i18n("Save"),
+						disabled: action === "none" || this.testing,
+						children: i18n(action === "remove" ? "Remove" : "Save"),
 					})}
 				</div>
 			</div>

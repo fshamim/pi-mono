@@ -250,7 +250,7 @@ export class ToolMessage extends LitElement {
 		const toolName = this.tool?.name || this.toolCall.name;
 
 		// Render tool content (renderer handles errors and styling)
-		const result: ToolResultMessageType<any> | undefined = this.aborted
+		const result: ToolResultMessageType | undefined = this.aborted
 			? {
 					role: "toolResult",
 					isError: true,
@@ -377,8 +377,8 @@ export function defaultConvertToLlm(messages: AgentMessage[]): Message[] {
 				} as Message;
 			}
 
-			// Pass through standard LLM roles
-			if (m.role === "user" || m.role === "assistant" || m.role === "toolResult") {
+			// Pass through standard LLM roles (system messages carry the prompt and tool declarations)
+			if (m.role === "system" || m.role === "user" || m.role === "assistant" || m.role === "toolResult") {
 				return m as Message;
 			}
 

@@ -416,6 +416,7 @@ export class ModelSelector extends DialogBase {
 								<div class="flex items-center gap-2 flex-1 min-w-0">
 									<span class="text-sm font-medium text-foreground truncate">${id}</span>
 									${isCurrent ? html`<span class="text-green-500">✓</span>` : ""}
+									${model.discovered ? html`<span class="shrink-0 rounded px-1 text-[10px] font-medium bg-amber-500/15 text-amber-600" title=${i18n("Listed live by the provider; context and cost are estimates")}>${i18n("new")}</span>` : ""}
 								</div>
 								${Badge(provider, "outline")}
 							</div>

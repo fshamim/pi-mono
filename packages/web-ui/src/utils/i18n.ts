@@ -12,6 +12,8 @@ declare module "@mariozechner/mini-lit" {
 		Thinking: string;
 		"All providers": string;
 		"Filter by provider": string;
+		new: string;
+		"Listed live by the provider; context and cost are estimates": string;
 		Vision: string;
 		You: string;
 		Assistant: string;
@@ -223,6 +225,9 @@ export const translations = {
 		Thinking: "Thinking",
 		"All providers": "All providers",
 		"Filter by provider": "Filter by provider",
+		new: "new",
+		"Listed live by the provider; context and cost are estimates":
+			"Listed live by the provider; context and cost are estimates",
 		Vision: "Vision",
 		You: "You",
 		Assistant: "Assistant",
@@ -445,6 +450,9 @@ export const translations = {
 		Thinking: "Thinking",
 		"All providers": "Alle Anbieter",
 		"Filter by provider": "Nach Anbieter filtern",
+		new: "neu",
+		"Listed live by the provider; context and cost are estimates":
+			"Live vom Anbieter gelistet; Kontext und Kosten sind Schätzungen",
 		Vision: "Vision",
 		You: "Sie",
 		Assistant: "Assistent",

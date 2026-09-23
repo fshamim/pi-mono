@@ -11,10 +11,7 @@ interface GetCurrentTimeParams {
 
 // GetCurrentTime tool has undefined details (only uses output)
 export class GetCurrentTimeRenderer implements ToolRenderer<GetCurrentTimeParams, undefined> {
-	render(
-		params: GetCurrentTimeParams | undefined,
-		result: ToolResultMessage<undefined> | undefined,
-	): ToolRenderResult {
+	render(params: GetCurrentTimeParams | undefined, result: ToolResultMessage | undefined): ToolRenderResult {
 		const state = result ? (result.isError ? "error" : "complete") : "inprogress";
 
 		// Full params + full result

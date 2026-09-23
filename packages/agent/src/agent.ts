@@ -277,8 +277,19 @@ export class Agent {
 		return this._state;
 	}
 
+	/**
+	 * Replace the base system prompt. The prompt lives in the leading system message,
+	 * so this rewrites that message's `content` (keeping its sections and tools) or
+	 * inserts one when the transcript has none.
+	 */
 	setSystemPrompt(systemPrompt: string): void {
-		this._state.systemPrompt = systemPrompt;
+		const [first, ...rest] = this._state.messages;
+		if (first?.role === "system") {
+			this._state.messages = [{ ...first, content: systemPrompt }, ...rest];
+			return;
+		}
+		const head = createInitialSystemMessage(systemPrompt, undefined);
+		if (head) this._state.messages = [head, ...this._state.messages];
 	}
 
 	setModel(model: Model<any>): void {
@@ -289,8 +300,17 @@ export class Agent {
 		this._state.messages = [...this._state.messages, message];
 	}
 
+	/**
+	 * Replace the transcript. A list without a leading system message (e.g. a session
+	 * saved before prompts moved into the transcript) keeps the current prompt and tools.
+	 */
 	replaceMessages(messages: AgentMessage[]): void {
-		this._state.messages = messages.slice();
+		if (messages[0]?.role === "system") {
+			this._state.messages = messages.slice();
+			return;
+		}
+		const head = getCurrentSystemMessage(this._state.messages);
+		this._state.messages = head ? [head, ...messages] : messages.slice();
 	}
 
 	/** Controls how queued steering messages are drained. */

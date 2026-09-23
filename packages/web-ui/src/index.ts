@@ -110,7 +110,13 @@ export { CalculateRenderer } from "./tools/renderers/CalculateRenderer.ts";
 // Tool renderers
 export { DefaultRenderer } from "./tools/renderers/DefaultRenderer.ts";
 export { GetCurrentTimeRenderer } from "./tools/renderers/GetCurrentTimeRenderer.ts";
-export type { ToolPartialResult, ToolRenderContext, ToolRenderer, ToolRenderResult } from "./tools/types.ts";
+export type {
+	ToolPartialResult,
+	ToolRenderContext,
+	ToolRenderer,
+	ToolRendererResult,
+	ToolRenderResult,
+} from "./tools/types.ts";
 export type { Attachment } from "./utils/attachment-utils.ts";
 // Utils
 export { loadAttachment } from "./utils/attachment-utils.ts";
